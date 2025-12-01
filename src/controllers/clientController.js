@@ -1,5 +1,5 @@
 
-import { ClientCompany } from "../models/ClientCompany.js";
+import { ClientCompany } from "../models/clientCompany.js";
 import Clients from "../models/Clients.js";
 
 export const createClient = async (req, res) => {
