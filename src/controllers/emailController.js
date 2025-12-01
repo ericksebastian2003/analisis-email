@@ -1,5 +1,7 @@
 import { ClientsCompany } from "../models/ClientsCompany.js";
 import { Email } from "../models/Email.js";
+import { ClientsCompany } from "../models/ClientsCompany.js";
+import { Email } from "../models/Email.js";
 
 
 export const bulkInsertEmails = async (req, res) => {
@@ -11,44 +13,45 @@ export const bulkInsertEmails = async (req, res) => {
             return res.status(400).json({ error: "Se debe enviar un arreglo de correos" });
         }
 
-        const failed = [];
+        console.log(`Recibidos ${emails.length} correos`);
+
+        // 1️⃣ Obtener todos los smtpId enviados
+        const smtpIds = emails.map(e => e.smtpId);
+
+        // 2️⃣ Buscar smtpId duplicados en BD en UNA sola consulta
+        const existingSmtpIds = await Email.find({ smtpId: { $in: smtpIds } })
+            .select("smtpId");
+
+        const existingSet = new Set(existingSmtpIds.map(e => e.smtpId));
+
+        // 3️⃣ Obtener dominios permitidos
+        const clientCompanies = await ClientsCompany.find({ clientId });
+        const validDomains = new Set(clientCompanies.map(c => c.domain.toLowerCase()));
+
         const validToInsert = [];
+        const failed = [];
 
-        console.log(`Procesando ${emails.length} correos para cliente ${clientId}`);
+        emails.forEach((e, i) => {
 
-        for (let i = 0; i < emails.length; i++) {
-            const e = emails[i];
-            console.log(`[${i}] Correo recibido:`, e);
-
-            // Verificar campos obligatorios
-            const requiredFields = e.recipient && e.sender && e.senderDomain && e.sentAt && e.smtpId && e.content;
-            if (!requiredFields) {
-                console.warn(`[${i}] Falló por campos faltantes`);
+            // Validación de campos
+            if (!e.recipient || !e.sender || !e.senderDomain || !e.sentAt || !e.smtpId || !e.content) {
                 failed.push({ index: i, reason: "Campos obligatorios faltantes", email: e });
-                continue;
+                return;
             }
 
-            // Verificar si el smtpId ya existe
-            const exists = await Email.findOne({ smtpId: e.smtpId });
-            if (exists) {
-                console.warn(`[${i}] smtpId duplicado: ${e.smtpId}`);
+            // smtpId duplicado
+            if (existingSet.has(e.smtpId)) {
                 failed.push({ index: i, reason: `smtpId duplicado: ${e.smtpId}`, email: e });
-                continue;
+                return;
             }
 
-            // Verificar si la empresa del remitente está autorizada para este cliente
-            const companyExists = await ClientsCompany.findOne({
-                clientId,
-                domain: e.senderDomain.toLowerCase(), // Normalizamos a minúsculas
-            });
-
-            if (!companyExists) {
-                console.warn(`[${i}] Empresa no autorizada: ${e.senderDomain}`);
+            // Dominio no permitido
+            if (!validDomains.has(e.senderDomain.toLowerCase())) {
                 failed.push({ index: i, reason: `Empresa no autorizada: ${e.senderDomain}`, email: e });
-                continue;
+                return;
             }
 
-            // Preparar correo válido para insertar
+            // Insert aprobado
             validToInsert.push({
                 clientId,
                 recipient: e.recipient,
@@ -58,14 +61,10 @@ export const bulkInsertEmails = async (req, res) => {
                 smtpId: e.smtpId,
                 content: e.content
             });
+        });
 
-            console.log(`[${i}] Correo listo para insertar: recipient=${e.recipient}, sender=${e.sender}, senderDomain=${e.senderDomain}, sentAt=${e.sentAt}`);
-        }
-
-        // Insertar todos los correos válidos
         if (validToInsert.length > 0) {
-            await Email.insertMany(validToInsert);
-            console.log(`Se insertaron ${validToInsert.length} correos correctamente`);
+            await Email.insertMany(validToInsert, { ordered: false });
         }
 
         return res.json({
@@ -74,7 +73,7 @@ export const bulkInsertEmails = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Error en bulkInsertEmails:", err);
+        console.error(err);
         return res.status(500).json({ error: "Error del servidor" });
     }
 };

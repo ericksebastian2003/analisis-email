@@ -1,9 +1,6 @@
 import { User } from "../models/Users.js";
 import bcrypt from "bcrypt";
 
-// ==================================================
-// 📌 REGISTRO DE USUARIO
-// ==================================================
 export const register = async (req, res) => {
     try {
         const { name, email, password, role, clientId } = req.body;
@@ -63,9 +60,6 @@ export const register = async (req, res) => {
     }
 };
 
-// ==================================================
-// 📌 LOGIN
-// ==================================================
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;

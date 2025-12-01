@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const clientCompanySchema = new mongoose.Schema(
+const clientsCompanySchema = new mongoose.Schema(
     {
         clientId: {
             type: mongoose.Types.ObjectId,
@@ -28,10 +28,9 @@ const clientCompanySchema = new mongoose.Schema(
     }
 );
 
-// Evitar duplicados: el mismo cliente no puede registrar la misma empresa + dominio
 clientCompanySchema.index(
     { clientId: 1, companyName: 1, domain: 1 },
     { unique: true }
 );
 
-export const ClientsCompany = mongoose.model("ClientsCompany", clientCompanySchema);
+export const ClientsCompany = mongoose.model("ClientsCompany", clientsCompanySchema);
