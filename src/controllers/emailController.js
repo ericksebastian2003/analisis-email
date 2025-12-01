@@ -1,7 +1,6 @@
 import { ClientsCompany } from "../models/ClientsCompany.js";
 import { Email } from "../models/Email.js";
-import { ClientsCompany } from "../models/ClientsCompany.js";
-import { Email } from "../models/Email.js";
+
 
 
 export const bulkInsertEmails = async (req, res) => {
