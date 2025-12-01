@@ -28,7 +28,7 @@ const clientsCompanySchema = new mongoose.Schema(
     }
 );
 
-clientCompanySchema.index(
+clientsCompanySchema.index(
     { clientId: 1, companyName: 1, domain: 1 },
     { unique: true }
 );
