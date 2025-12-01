@@ -1,5 +1,5 @@
+import { ClientsCompany } from "../models/ClientsCompany.js";
 import { Email } from "../models/Email.js";
-import { ClientCompany } from "../models/clientCompany.js";
 
 
 export const bulkInsertEmails = async (req, res) => {
@@ -37,7 +37,7 @@ export const bulkInsertEmails = async (req, res) => {
             }
 
             // Verificar si la empresa del remitente está autorizada para este cliente
-            const companyExists = await ClientCompany.findOne({
+            const companyExists = await ClientsCompany.findOne({
                 clientId,
                 domain: e.senderDomain.toLowerCase(), // Normalizamos a minúsculas
             });

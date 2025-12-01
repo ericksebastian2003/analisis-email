@@ -34,4 +34,4 @@ clientCompanySchema.index(
     { unique: true }
 );
 
-export const ClientCompany = mongoose.model("ClientCompany", clientCompanySchema);
+export const ClientsCompany = mongoose.model("ClientsCompany", clientCompanySchema);

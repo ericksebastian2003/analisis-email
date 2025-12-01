@@ -1,6 +1,6 @@
 
-import { ClientCompany } from "../models/clientCompany.js";
 import Clients from "../models/Clients.js";
+import { ClientsCompany } from "../models/ClientsCompany.js";
 
 export const createClient = async (req, res) => {
     try {
@@ -40,7 +40,7 @@ export const addClientAuthorization = async (req, res) => {
         }
 
     
-        const company = await ClientCompany.create({
+        const company = await ClientsCompany.create({
             clientId: id,
             companyName,
             domain: domain.toLowerCase().trim()
